@@ -443,3 +443,15 @@ void ReaderWriterLock::WriterRelease()
     DEBUG('w', "Writer \"%s\" getting out \t(blockingReader=%d)\n", currentThread->getName(), blockingReader);
     binary_semaphore_writer->V(); // Unlock g
 }
+
+MySemaphore::MySemaphore(int initialValue) {
+
+}
+
+void MySemaphore::P() {
+
+}
+
+void MySemaphore::V() {
+
+}

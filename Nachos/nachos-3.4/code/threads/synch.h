@@ -189,4 +189,15 @@ class ReaderWriterLock {
     Lock* mutex_reader;
 };
 
+class MySemaphore {
+  public:
+  MySemaphore(int initialValue);
+
+  void P();
+  void V();
+
+  private:
+  int value;
+};
+
 #endif // SYNCH_H
