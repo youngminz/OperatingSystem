@@ -19,10 +19,6 @@ Statistics *stats;			// performance metrics
 Timer *timer;				// the hardware timer device,
 					// for invoking context switches
 
-// Lab1: Thread manipulation variable
-bool tid_flag[MAX_THREAD_NUM]; // it's define
-Thread* tid_pointer[MAX_THREAD_NUM];
-
 #ifdef FILESYS_NEEDED
 FileSystem  *fileSystem;
 #endif
@@ -64,7 +60,6 @@ extern void Cleanup();
 static void
 TimerInterruptHandler(int dummy)
 {
-    DEBUG('c', " << random Context Switch (stats->totalTicks = %d) >>\n", stats->totalTicks);
     if (interrupt->getStatus() != IdleMode)
 	interrupt->YieldOnReturn();
 }
@@ -85,14 +80,6 @@ Initialize(int argc, char **argv)
     int argCount;
     char* debugArgs = "";
     bool randomYield = FALSE;
-
-    bool roundRobin = FALSE; // Lab2: Round robin
-
-    // Lab1: Initialize thread variable
-    for (int i = 0; i < MAX_THREAD_NUM; i++) {
-        tid_flag[i] = FALSE;
-        tid_pointer[i] = NULL;
-    }
 
 #ifdef USER_PROGRAM
     bool debugUserProg = FALSE;	// single step user program
@@ -119,10 +106,6 @@ Initialize(int argc, char **argv)
 	    RandomInit(atoi(*(argv + 1)));	// initialize pseudo-random
 						// number generator
 	    randomYield = TRUE;
-	    argCount = 2;
-	} else if (!strcmp(*argv, "-rr")) { // Lab2: activate RR timer
-	    ASSERT(argc > 1);
-	    roundRobin = TRUE;
 	    argCount = 2;
 	}
 #ifdef USER_PROGRAM
@@ -152,9 +135,6 @@ Initialize(int argc, char **argv)
     scheduler = new Scheduler();		// initialize the ready queue
     if (randomYield)				// start the timer (if needed)
 	timer = new Timer(TimerInterruptHandler, 0, randomYield);
-
-    if (roundRobin) // Lab2: start the RR timer
-        timer = new Timer(RRHandler, 0, FALSE);
 
     threadToBeDestroyed = NULL;
 
@@ -191,8 +171,7 @@ Initialize(int argc, char **argv)
 void
 Cleanup()
 {
-    if (VERBOSE)
-        printf("\nCleaning up...\n");
+    printf("\nCleaning up...\n");
 #ifdef NETWORK
     delete postOffice;
 #endif

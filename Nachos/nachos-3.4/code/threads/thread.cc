@@ -32,41 +32,15 @@
 //	"threadName" is an arbitrary string, useful for debugging.
 //----------------------------------------------------------------------
 
-Thread::Thread(char* threadName, int p)
-    : priority( p ) // Lab2: default priority
+Thread::Thread(char* threadName)
 {
-    // Lab1: Allocate thread id for current thread
-    bool success_allocate = FALSE;
-    for (int i = 0; i < MAX_THREAD_NUM; i++) { // sequential search
-        if (!tid_flag[i]) { // if found an empty space
-            this->tid = i;
-            tid_flag[i] = TRUE;
-            tid_pointer[i] = this; // for TS command
-            success_allocate = TRUE;
-            break;
-        }
-    }
-    if (!success_allocate) {
-        printf("Reach maximum threads number %d, unable to allocate!!", MAX_THREAD_NUM);
-    }
-    ASSERT(success_allocate); // abort if unable to allocate new thread
-
     name = threadName;
-    uid = 0; // Lab1: default user ID
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
-
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
-}
-
-// C++ Constructor Overloading
-Thread::Thread(char* threadName)
-    : Thread(threadName, 0)
-{
-    // do nothing special
 }
 
 //----------------------------------------------------------------------
@@ -84,9 +58,6 @@ Thread::Thread(char* threadName)
 Thread::~Thread()
 {
     DEBUG('t', "Deleting thread \"%s\"\n", name);
-
-    // Lab1: Release thread flag
-    tid_flag[this->tid] = FALSE;
 
     ASSERT(this != currentThread);
     if (stack != NULL)
