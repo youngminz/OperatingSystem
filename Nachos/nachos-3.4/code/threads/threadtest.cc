@@ -15,7 +15,7 @@
 #include "synch.h" // Lab3 for Lock
 
 // testnum is set in main.cc
-int testnum = 11;
+int testnum = 12;
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -713,6 +713,74 @@ void MySemaphoreTest() {
     printf("After V()\n");
 }
 
+int counter = 0;
+
+void Producer(int semaphoreArgument) {
+    printf("Producer Started!\n");
+    MySemaphore *mySemaphore = (MySemaphore *) semaphoreArgument;
+
+    while (true) {
+        // 입장 구역
+        mySemaphore->P();
+
+        // 임계 구역
+        int prevCounter = counter;
+        counter = counter + 1;
+
+        // 퇴장 구역
+        mySemaphore->V();
+
+        // 나머지 구역
+        printf("[Producer] counter = %d\n", counter);
+        
+        // 카운트가 1 증가되었음을 어설션한다.
+        ASSERT_MSG(counter - prevCounter == 1, "counter - prevCounter != 1");
+
+        // 현재 스케줄러가 비선점형으로 구현되어 있어, Yield 호출을 명시적으로 해 주어야 컨텍스트 스위치를 진행한다.
+        currentThread->Yield();
+    }
+}
+
+void Consumer(int semaphoreArgument) {
+    printf("Consumer Started!\n");
+    MySemaphore *mySemaphore = (MySemaphore *) semaphoreArgument;
+
+    while (true) {
+        // 입장 구역
+        mySemaphore->P();
+
+        // 임계 구역
+        int prevCounter = counter;
+        counter = counter - 1;
+
+        // 퇴장 구역
+        mySemaphore->V();
+
+        // 나머지 구역
+        printf("[Consumer] counter = %d\n", counter);
+
+        // 카운트가 1 감소되었음을 어설션한다.
+        ASSERT_MSG(counter - prevCounter == -1, "counter - prevCounter != -1");
+
+        // 현재 스케줄러가 비선점형으로 구현되어 있어, Yield 호출을 명시적으로 해 주어야 컨텍스트 스위치를 진행한다.
+        currentThread->Yield();
+    }
+}
+
+void ProducerConsumerTest() {
+    MySemaphore *mySemaphore = new MySemaphore(1);
+
+    Thread *t1 = new Thread("Producer");
+    Thread *t2 = new Thread("Consumer");
+
+    printf("Before Fork()\n");
+
+    t1->Fork(Producer, (void *) mySemaphore);
+    t2->Fork(Consumer, (void *) mySemaphore);
+
+    printf("After Fork()\n");
+}
+
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
@@ -789,6 +857,9 @@ ThreadTest()
         break;
     case 11:
         MySemaphoreTest();
+        break;
+    case 12:
+        ProducerConsumerTest();
         break;
     default:
         printf("No test specified.\n");
