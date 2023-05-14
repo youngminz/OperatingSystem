@@ -445,13 +445,53 @@ void ReaderWriterLock::WriterRelease()
 }
 
 MySemaphore::MySemaphore(int initialValue) {
-
+    this->value = initialValue;
+    this->queue = new List();
 }
 
 void MySemaphore::P() {
+    // 인터럽트를 비활성화 시킴으로서 P() 함수를 실행하는 동안 컨텍스트 스위칭이 일어나지 않도록 한다.
+    IntStatus prevIntLevel = interrupt->SetLevel(IntOff);
 
+    // 세마포어 값을 감소한다.
+    this->value--;
+
+    // 만약 현재 세마포어가 사용 불가능한 상태인 경우,
+    if (value < 0) {
+
+        // 큐에 현재 실행 중인 쓰레드를 집어넣는다.
+        this->queue->Append(currentThread);
+
+        // Sleep() 함수는 인터럽트가 이미 비활성화 되어 있다고 가정한다. 
+        // 이는 이 함수가 원자성을 위해 인터럽트를 반드시 비활성화해야 하는 동기화 루틴에서 호출되기 때문이다.
+        // 만약 인터럽트를 다시 활성화하면, `ASSERT(interrupt->getLevel() == IntOff);` 코드에 의해 어설션에 실패한다.
+        currentThread->Sleep();
+    } else {
+        // 인터럽트를 다시 활성화한다.
+        interrupt->SetLevel(prevIntLevel);
+    }
 }
 
 void MySemaphore::V() {
+    // 인터럽트를 비활성화 시킴으로서 V() 함수를 실행하는 동안 컨텍스트 스위칭이 일어나지 않도록 한다.
+    IntStatus prevIntLevel = interrupt->SetLevel(IntOff);
 
+    // 세마포어 값을 증가한다.
+    this->value++;
+
+    // 만약 현재 세마포어의 획득을 기다리고 있는 쓰레드가 존재하는 경우,
+    if (value <= 0) {
+
+        // 큐에서 쓰레드를 가지고 온다.
+        Thread *thread = (Thread *) this->queue->Remove();
+
+        // value 값은 세마포어의 실행을 대기하고 있는 쓰레드의 갯수이기 때문에, 무조건 쓰레드를 큐에서 가져올 수 있어야 한다.
+        ASSERT(thread != NULL);
+
+        // 방금 꺼낸 쓰레드를 스케줄러에게 ReadyToRun 상태로 변경을 요청한다.
+        scheduler->ReadyToRun(thread);
+    }
+
+    // 인터럽트를 다시 활성화한다.
+    interrupt->SetLevel(prevIntLevel);
 }

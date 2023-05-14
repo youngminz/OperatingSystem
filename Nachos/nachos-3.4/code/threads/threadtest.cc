@@ -15,7 +15,7 @@
 #include "synch.h" // Lab3 for Lock
 
 // testnum is set in main.cc
-int testnum = 1;
+int testnum = 11;
 
 //----------------------------------------------------------------------
 // SimpleThread
@@ -701,6 +701,18 @@ Lab3ReaderWriter()
     currentThread->Yield(); // Yield the main thread
 }
 
+void MySemaphoreTest() {
+    MySemaphore *mySemaphore = new MySemaphore(1);
+
+    printf("Before P()\n");
+    mySemaphore->P();
+    printf("After P()\n");
+
+    printf("Before V()\n");
+    mySemaphore->V();
+    printf("After V()\n");
+}
+
 //----------------------------------------------------------------------
 // ThreadTest
 // 	Invoke a test routine.
@@ -774,6 +786,9 @@ ThreadTest()
         printf("Lab3 Challenge2: Reader-Writer\n");
         printf("(add `-d wc -rs` argument to show \"Context Switch\", RWLock message and activate random timer)\n");
         Lab3ReaderWriter();
+        break;
+    case 11:
+        MySemaphoreTest();
         break;
     default:
         printf("No test specified.\n");

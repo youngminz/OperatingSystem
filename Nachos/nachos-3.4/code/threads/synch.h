@@ -197,7 +197,8 @@ class MySemaphore {
   void V();
 
   private:
-  int value;
+  int value; // 양수인 경우 세마포어가 사용 가능한 것. 음수인 경우 세마포어의 획득을 원하는 쓰레드의 갯수.
+  List *queue; // List<Thread *> 이다. 함수의 구현체의 응답이 void * 여서 Thread * 으로 타입 캐스팅 해줘야 한다.
 };
 
 #endif // SYNCH_H
