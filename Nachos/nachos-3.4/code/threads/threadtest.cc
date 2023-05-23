@@ -117,6 +117,10 @@ void Consumer(int semaphoreArgument) {
     }
 }
 
+void ForkFunction(int dummy) {
+    printf("[ForkFunction] Current Thread's Priority: %d\n", currentThread->getPriority());
+}
+
 void ProducerConsumerTest() {
     MySemaphore *mySemaphore = new MySemaphore(1);
 
@@ -129,6 +133,19 @@ void ProducerConsumerTest() {
     t2->Fork(Consumer, (void *) mySemaphore);
 
     printf("After Fork()\n");
+}
+
+void PrioritySchedulingTest() {
+    Thread *t1 = new Thread("t1");
+    t1->setPriority(0);
+    Thread *t2 = new Thread("t2");
+    t2->setPriority(10000);
+    Thread *t3 = new Thread("t3");
+    t3->setPriority(5000);
+
+    t1->Fork(ForkFunction, (void *) 0);
+    t2->Fork(ForkFunction, (void *) 0);
+    t3->Fork(ForkFunction, (void *) 0);
 }
 
 //----------------------------------------------------------------------
@@ -145,6 +162,9 @@ ThreadTest()
 	break;
     case 2:
     ProducerConsumerTest();
+    break;
+    case 3:
+    PrioritySchedulingTest();
     break;
     default:
 	printf("No test specified.\n");
